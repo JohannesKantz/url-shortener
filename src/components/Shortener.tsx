@@ -15,14 +15,18 @@ import { useFormState } from "react-dom";
 
 import { createShortURL } from "@/lib/actions";
 import { useEffect, useRef } from "react";
+import { useSession } from "next-auth/react";
 
 const baseURL = "http://localhost:3000/";
 
 export default function Component() {
+    const { data: session, status } = useSession();
     const [formState, formAction] = useFormState(createShortURL, {
         shortURL: "",
     });
     const shortURL = baseURL + (formState.shortURL ?? "");
+
+    const error = formState.error;
 
     const formRef = useRef<HTMLFormElement>(null);
     useEffect(() => {
@@ -62,6 +66,38 @@ export default function Component() {
                                 type="url"
                             />
                         </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="shortURL">Custom Short</Label>{" "}
+                            {status !== "authenticated" && (
+                                <span className="text-xs bg-slate-300 text-black px-2.5 ml-1 py-1.5 rounded-full">
+                                    Signed-in only
+                                </span>
+                            )}
+                            {status === "authenticated" && (
+                                <>
+                                    <span className="text-sm text-thin text-slate-600 ml-1">
+                                        (leave blank for random short)
+                                    </span>
+                                    <div className="flex justify-center items-center">
+                                        <span className="text-gray-500 pr-1">
+                                            {baseURL + " "}
+                                        </span>
+                                        <Input
+                                            className="rounded-md"
+                                            id="shortURL"
+                                            name="shortURL"
+                                            placeholder=""
+                                            type="text"
+                                        />
+                                    </div>
+                                </>
+                            )}
+                        </div>
+
+                        <div>
+                            {error && <p className="text-red-600">{error}</p>}
+                        </div>
+
                         <Button className="w-full" type="submit">
                             Shorten URL
                         </Button>
